@@ -9,6 +9,7 @@ import logging
 from fpdf import FPDF
 import matplotlib.pyplot as plt
 import tempfile
+import requests
 
 logging.basicConfig(
     filename='etl_process.log',      # Nombre del archivo silencioso
@@ -199,6 +200,68 @@ if tickers:
         plt.close(fig) # Liberamos la memoria del servidor
         
         return bytes(pdf.output())
+
+
+    # ==========================================
+    # SISTEMA DE ALERTAS EMPRESARIALES (WEBHOOK)
+    # ==========================================
+    st.sidebar.markdown("---")
+    st.sidebar.subheader("🔔 Alertas de Volatilidad")
+    
+    umbral_volatilidad = st.sidebar.number_input("Umbral de Alerta Diaria (%)", min_value=1.0, value=5.0, step=0.5)
+    webhook_url = st.sidebar.text_input("URL del Webhook (Discord/Slack)", type="password", help="Pega aquí la URL de integración de tu canal.")
+    
+    if st.sidebar.button("🚀 Simular y Enviar Alertas"):
+        if not webhook_url:
+            st.sidebar.error("⚠️ Ingresa una URL de Webhook válida.")
+        else:
+            # 1. Aislamos los datos del último día disponible
+            last_date = df_filtered['Date'].max()
+            latest_data = df_filtered[df_filtered['Date'] == last_date]
+            
+            alertas_enviadas = 0
+            
+            # 2. Evaluamos cada activo seleccionado
+            for index, row in latest_data.iterrows():
+                # Multiplicamos por 100 para evaluar el porcentaje entero (ej: 0.05 -> 5.0%)
+                retorno_diario = row['Active_Return'] * 100 
+                
+                # Evaluamos el valor absoluto (nos importa si sube O baja abruptamente)
+                if abs(retorno_diario) >= umbral_volatilidad:
+                    icono = "🚀" if retorno_diario > 0 else "🩸"
+                    
+                    # 3. Construimos el mensaje de la alerta
+                    mensaje = (
+                        f"⚠️ **ALERTA DE MERCADO** ⚠️\n"
+                        f"**Activo:** {row['Ticker']}\n"
+                        f"**Fecha:** {last_date.strftime('%Y-%m-%d')}\n"
+                        f"**Variación:** {icono} {retorno_diario:.2f}%\n"
+                        f"**Precio de Cierre:** ${row['Price_Active']:.2f} {currency}"
+                    )
+                    
+                    # 4. Formato dual compatible con Discord ("content") y Slack ("text")
+                    payload = {
+                        "content": mensaje, 
+                        "text": mensaje     
+                    }
+                    
+                    # 5. Envío HTTP POST al servidor externo
+                    try:
+                        response = requests.post(webhook_url, json=payload)
+                        if response.status_code in [200, 204]:
+                            alertas_enviadas += 1
+                        else:
+                            st.sidebar.error(f"Fallo al enviar {row['Ticker']}. Código HTTP: {response.status_code}")
+                    except Exception as e:
+                        st.sidebar.error(f"Error de conexión: {e}")
+            
+            # 6. Feedback al usuario
+            if alertas_enviadas > 0:
+                st.sidebar.success(f"✅ {alertas_enviadas} alerta(s) disparada(s) exitosamente.")
+            else:
+                st.sidebar.info("Tranquilidad en el mercado hoy. Ningún activo superó el umbral de estrés.")
+
+
 
  # --- Cálculo de Métricas (Ratio de Sharpe) ---
     st.markdown("### 📈 Métricas de Rendimiento")
