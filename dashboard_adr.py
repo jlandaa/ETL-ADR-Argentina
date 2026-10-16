@@ -236,7 +236,7 @@ if tickers:
                         f"**Activo:** {row['Ticker']}\n"
                         f"**Fecha:** {last_date.strftime('%Y-%m-%d')}\n"
                         f"**Variación:** {icono} {retorno_diario:.2f}%\n"
-                        f"**Precio de Cierre:** ${row['Price_Active']:.2f} {currency}"
+                        f"**Precio (Cierre Ajustado):** ${row['Price_Active']:.2f} {currency}"
                     )
                     
                     # 4. Formato dual compatible con Discord ("content") y Slack ("text")
