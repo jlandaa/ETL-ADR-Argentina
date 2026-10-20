@@ -47,6 +47,7 @@ El sistema se divide en tres fases modulares (ETL) respaldadas por una capa cont
 
 ### Opción A: Entorno de Producción (Cloud)
 El dashboard analítico está desplegado y accesible públicamente, consumiendo el pipeline de datos automatizado en el backend.
+
 👉 **[Acceder al Dashboard Financiero (Streamlit)](https://jml-dashboard-adr.streamlit.app/)**
 
 ### Opción B: Ejecución Local (Desarrollo)
