@@ -54,8 +54,8 @@ El dashboard analítico está desplegado y accesible públicamente, consumiendo 
 Para replicar el entorno de modelado en local:
 1. **Clonar el repositorio e ingresar a la carpeta:**
     ```bash
-    git clone https://github.com/jlandaa/ETL_ADR_Argentina.git
-    cd ETL_ADR_Argentina
+    git clone https://github.com/jlandaa/ETL-ADR-Argentina.git
+    cd ETL-ADR-Argentina
     ```
 2.  **Crear y activar un entorno virtual (Recomendado):**
     ```bash
