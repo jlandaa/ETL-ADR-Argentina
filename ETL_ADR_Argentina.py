@@ -60,6 +60,9 @@ def transform(raw_data: dict[str, pd.DataFrame]) -> pd.DataFrame:
         df.index = df.index.tz_localize(None)
     df.index.name = "Date"
 
+    # Consolidar fechas duplicadas por mezcla de husos horarios o datos intradiarios
+    df = df.groupby(level=0).last()
+
     # Renombramos columnas macro antes de procesarlas
     df = df.rename(columns={"ARS=X": "Dolar_Oficial", "^TNX": "Risk_Free_Rate"})
     df = df.reset_index()
@@ -91,7 +94,11 @@ def transform(raw_data: dict[str, pd.DataFrame]) -> pd.DataFrame:
     # 6. Limpieza y cálculos finales
     df_melted = df_melted.dropna(subset=["Price_USD"])
     df_melted = df_melted[df_melted["Price_USD"] > 0]
-    df_melted = df_melted.sort_values(by=["Ticker", "Date"]).reset_index(drop=True)
+    df_melted = (
+        df_melted.sort_values(by=["Ticker", "Date"])
+        .drop_duplicates(subset=["Ticker", "Date"], keep="last")
+        .reset_index(drop=True)
+    )
     df_melted["Daily_Return"] = df_melted.groupby("Ticker")["Price_USD"].pct_change()
     df_melted["processed_at"] = datetime.now()
 
@@ -108,6 +115,9 @@ def validar_datos_etl(df: pd.DataFrame) -> tuple[bool, list[str]]:
     columnas_faltantes = EXPECTED_OUTPUT_COLUMNS - set(df.columns)
     if columnas_faltantes:
         return False, [f"Faltan columnas esperadas: {sorted(columnas_faltantes)}"]
+
+    if df.duplicated(subset=["Ticker", "Date"]).any():
+        errores.append("Se detectaron filas duplicadas para la misma combinación (Ticker, Date).")
 
     if (df["Price_USD"] <= 0).any():
         errores.append("Se detectaron precios en USD menores o iguales a cero.")
