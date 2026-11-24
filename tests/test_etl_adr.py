@@ -143,3 +143,27 @@ def test_construir_alertas_volatilidad() -> None:
     assert {a["ticker"] for a in alertas} == {"GGAL", "YPF"}
     assert "content" in alertas[0]["payload"]
     assert "text" in alertas[0]["payload"]
+
+
+def test_transform_consolida_fechas_duplicadas_por_timezone() -> None:
+    fechas_duplicadas = pd.to_datetime(
+        ["2026-11-24 00:00:00+00:00", "2026-11-24 19:00:00+00:00", "2026-11-25 00:00:00+00:00"]
+    )
+    df_raw = pd.DataFrame(
+        {
+            "GGAL": [50.0, np.nan, 55.0],
+            "GGAL.BA": [6000.0, np.nan, 6600.0],
+            "YPF": [30.0, 31.0, 33.0],
+            "ARS=X": [np.nan, 1000.0, 1010.0],
+            "^TNX": [4.2, 4.2, 4.3],
+        },
+        index=fechas_duplicadas,
+    )
+
+    df_out = etl.transform({"yf": df_raw})
+
+    assert not df_out.duplicated(subset=["Ticker", "Date"]).any()
+    # Debe conservar el último valor válido de cada activo en 2026-11-24 sin perder ARS=X ni GGAL
+    ypf_dia1 = df_out[(df_out["Ticker"] == "YPF") & (df_out["Date"] == "2026-11-24")].iloc[0]
+    assert ypf_dia1["Price_USD"] == pytest.approx(31.0)
+    assert ypf_dia1["Dolar_Oficial"] == pytest.approx(1000.0)
