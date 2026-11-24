@@ -138,7 +138,9 @@ def test_construir_alertas_volatilidad() -> None:
     df_usd, currency = analytics.aplicar_moneda_y_retornos(df_ok, show_in_ars=False)
 
     # En la última fecha: GGAL cae -9.09% y YPF sube +10.00% -> ambos superan 5%
-    alertas = analytics.construir_alertas_volatilidad(df_usd, umbral_volatilidad=5.0, currency=currency)
+    alertas = analytics.construir_alertas_volatilidad(
+        df_usd, umbral_volatilidad=5.0, currency=currency
+    )
     assert len(alertas) == 2
     assert {a["ticker"] for a in alertas} == {"GGAL", "YPF"}
     assert "content" in alertas[0]["payload"]
