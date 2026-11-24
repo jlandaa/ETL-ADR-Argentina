@@ -35,6 +35,7 @@ def aplicar_moneda_y_retornos(df: pd.DataFrame, show_in_ars: bool) -> tuple[pd.D
         currency = "USD"
 
     df_out = df_out.sort_values(by=["Ticker", "Date"])
+    df_out = df_out.drop_duplicates(subset=["Ticker", "Date"], keep="last")
     df_out["Active_Return"] = df_out.groupby("Ticker")["Price_Active"].pct_change()
     return df_out, currency
 
