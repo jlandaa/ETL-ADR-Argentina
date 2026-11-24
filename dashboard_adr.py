@@ -289,7 +289,12 @@ if tickers:
     # --- MATRIZ DE CORRELACIÓN ---
     st.markdown("---")
     st.subheader(f"🔗 Matriz de Correlación de Retornos ({currency})")
-    df_pivot = df_filtered.pivot(index="Date", columns="Ticker", values="Active_Return")
+    df_pivot = df_filtered.pivot_table(
+        index="Date",
+        columns="Ticker",
+        values="Active_Return",
+        aggfunc="last",
+    )
     corr_matrix = df_pivot.corr()
     fig_corr = px.imshow(
         corr_matrix,
