@@ -54,9 +54,7 @@ def calcular_metricas_activo(prices: pd.Series, returns: pd.Series) -> dict[str,
         }
 
     std_dev = float(clean_returns.std())
-    sharpe_ratio = (
-        float((clean_returns.mean() / std_dev) * (252**0.5)) if std_dev > 0 else 0.0
-    )
+    sharpe_ratio = float((clean_returns.mean() / std_dev) * (252**0.5)) if std_dev > 0 else 0.0
 
     first_price = float(clean_prices.iloc[0])
     total_return_pct = (
