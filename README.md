@@ -26,7 +26,7 @@ El objetivo es automatizar la recolección, validación, transformación y visua
 
 ## 🏗️ Arquitectura del Pipeline (ETL & Analytics)
 
-El sistema separa las responsabilidades en tres capas modulares respaldadas por observabilidad continua:
+El sistema separa las responsabilidades en cuatro etapas (pipeline ETL + motor analítico) respaldadas por observabilidad continua:
 
 1. **Extract (`ETL_ADR_Argentina.py`):** Descarga automatizada de precios de cierre ajustados para tickers clave (`GGAL`, `YPF`, `BMA`, `PAM`, `CEPU`) y activos locales para el cálculo de brecha cambiaria.
 2. **Transform & Data Quality Gate (`ETL_ADR_Argentina.py`):** Limpieza defensiva orientada a celdas, normalización de series temporales, cálculo de **Retornos Diarios** porcentuales, generación de metadatos (`timestamp`) y validación previa de integridad antes de persistir.
